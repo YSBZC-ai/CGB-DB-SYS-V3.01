@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cy.sys.dao.SysRoleDao">
+
+    <!--resultMap元素一般应用于高级映射，如：
+    自定义字段映射
+    嵌套查询映射
+    多表关系查询映射-->
+    <resultMap id="sysRoleMenuVo" type="com.cy.sys.entity.SysRoleMenuVo">
+        <!--id元素一般用于应用于主键的映射-->
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="note" property="note"/>
+        <!--一般用于嵌套或多表查询，而且collection实现的是one2many映射-->
+        <collection column="id" property="menuIds"  select="com.cy.sys.dao.SysRoleMenuDao.findMenuIdsByRoleId"></collection>
+    </resultMap>
+
+    <select id="findObjectById" resultMap="sysRoleMenuVo">
+        select  id,name,note from sys_roles where id = #{id}
+    </select>
+
+    <sql id="queryWhereId">
+        <where>
+            <if test="name!=null and name!=''">
+                name like concat("%",#{name},"%")
+            </if>
+        </where>
+    </sql>
+    <!--
+    useGeneratedKeys表示使用insert操作后的主键值
+    keyProperty表示将主键值存储到参数对象的id属性上
+    -->
+    <insert id="insertObject" parameterType="com.cy.sys.entity.SysRole" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_roles
+        (id,name,note,createdTime,modifiedTime,createdUser,modifiedUser)
+        values
+        (null,#{name},#{note},now(),now(),#{createdUser},#{modifiedUser})
+    </insert>
+
+    <select id="getRowCount"
+            resultType="int">
+        select count(*)
+        from sys_roles
+        <include refid="queryWhereId"/>
+    </select>
+
+    <select id="findPageObjects" resultType="com.cy.sys.entity.SysRole">
+        select *
+        from sys_roles
+        <include refid="queryWhereId"/>
+        order by createdTime desc
+        limit #{startIndex},#{pageSize}
+    </select>
+
+</mapper>
